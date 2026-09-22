@@ -1,0 +1,14 @@
+packages:
+  - client
+  - server
+
+allowBuilds:
+  '@prisma/engines': true
+  esbuild: true
+  prisma: true
+
+onlyBuiltDependencies:
+  - esbuild
+
+overrides:
+  electron-to-chromium: 1.5.430

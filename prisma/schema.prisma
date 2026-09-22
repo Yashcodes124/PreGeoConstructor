@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BuildingType {
+  residential
+  commercial
+  industrial
+  mixed_use
+  institutional
+}
+
+enum QualityGrade {
+  economy
+  standard
+  premium
+}
+
+enum SuitabilityFactor {
+  slope
+  water
+  accessibility
+  environment
+  facilities
+}
+
+model Site {
+  id              String       @id @default(uuid()) @db.Uuid
+  label           String?
+  latitude        Decimal      @db.Decimal(9, 6)
+  longitude       Decimal      @db.Decimal(9, 6)
+  plotAreaSqFt    Int
+  builtUpAreaSqFt Int
+  buildingType    BuildingType
+  floors          Int
+  qualityGrade    QualityGrade
+  budget          Decimal?     @db.Decimal(14, 2)
+  createdAt       DateTime     @default(now())
+  analyses        Analysis[]
+
+  @@index([latitude, longitude])
+}
+
+model Analysis {
+  id                 String              @id @default(uuid()) @db.Uuid
+  siteId             String              @db.Uuid
+  overallScore       Decimal             @db.Decimal(5, 2)
+  dataConfidence     Decimal             @db.Decimal(5, 2)
+  rawData            Json?
+  normalizedData     Json
+  createdAt          DateTime            @default(now())
+  site               Site                @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  factorResults      FactorResult[]
+  orientationResult  OrientationResult?
+  costEstimate       CostEstimate?
+  reports            Report[]
+
+  @@index([siteId])
+  @@index([createdAt])
+}
+
+model FactorResult {
+  id          String            @id @default(uuid()) @db.Uuid
+  analysisId  String            @db.Uuid
+  factor      SuitabilityFactor
+  rawValue    Json?
+  score       Decimal           @db.Decimal(5, 2)
+  weight      Decimal           @db.Decimal(5, 4)
+  explanation String
+  analysis    Analysis          @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@unique([analysisId, factor])
+  @@index([analysisId])
+}
+
+model OrientationResult {
+  id               String   @id @default(uuid()) @db.Uuid
+  analysisId       String   @unique @db.Uuid
+  recommendedAngle Decimal  @db.Decimal(6, 2)
+  solarScore       Decimal  @db.Decimal(5, 2)
+  windScore        Decimal? @db.Decimal(5, 2)
+  candidateScores  Json
+  analysis         Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+}
+
+model CostEstimate {
+  id                String   @id @default(uuid()) @db.Uuid
+  analysisId        String   @unique @db.Uuid
+  area              Int
+  baseRate          Decimal  @db.Decimal(12, 2)
+  terrainMultiplier Decimal  @db.Decimal(6, 3)
+  qualityMultiplier Decimal  @db.Decimal(6, 3)
+  estimatedCost     Decimal  @db.Decimal(14, 2)
+  rangeLow          Decimal  @db.Decimal(14, 2)
+  rangeHigh         Decimal  @db.Decimal(14, 2)
+  analysis          Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id          String   @id @default(uuid()) @db.Uuid
+  analysisId  String   @db.Uuid
+  generatedAt DateTime @default(now())
+  path        String?
+  url         String?
+  analysis    Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId])
+}
+
+model ProviderCache {
+  id        String   @id @default(uuid()) @db.Uuid
+  key       String   @unique
+  provider  String
+  payload   Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([provider])
+  @@index([expiresAt])
+}
