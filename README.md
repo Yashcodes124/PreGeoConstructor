@@ -1,12 +1,12 @@
-# BuildWise AI (PreGeoConstructor)
+# PreGeoConstructor (PreGeoIntelligenceConstructor)
 
-> **Preliminary Project Planning & Analysis Platform**  
-> BuildWise AI streamlines early-stage construction and geotechnical analysis, providing automated baseline checks, data verification, and structural feasibility insights.
+> **Preliminary Geotechnical & Construction Intelligence Platform**  
+> PreGeoConstructor streamlines early-stage construction and geotechnical analysis, providing automated baseline checks, site data verification, and structural feasibility insights.
 
 ---
 
 ## ?? Important Disclaimer
-**BuildWise AI is designed for preliminary planning, data aggregation, and exploratory analysis only.**  
+**PreGeoConstructor is designed for preliminary planning, data aggregation, and exploratory analysis only.**  
 It does **not** provide formal, legally binding structural engineering certifications or final stamp approvals. All output must be reviewed and validated by a licensed professional engineer (PE) prior to site activity or municipal permitting.
 
 ---
@@ -16,7 +16,7 @@ It does **not** provide formal, legally binding structural engineering certifica
 * **Frontend:** React, Vite, TypeScript
 * **Backend:** Node.js, Express, TypeScript
 * **Database & ORM:** PostgreSQL, Prisma ORM
-* **Monorepo / Package Manager:** pnpm Workspaces
+* **Monorepo / Package Manager:** \pnpm\ Workspaces
 
 ---
 
