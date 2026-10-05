@@ -23,3 +23,9 @@ Accepted. Basic analysis should work without an account; auth/history can be add
 
 ## ADR-008 — Digital Raitha as UX inspiration
 Accepted. Use its product/UX ideas only; do not copy its ML stack, security configuration, or mock prediction behavior.
+
+## ADR-009 — Unavailable factors are excluded, not imputed
+Accepted. If a provider fails, that factor score is null. Remaining documented weights are renormalized only to show a partial index, and only when at least three factors and 60% of documented weight are available. Otherwise the overall index is withheld. This does not change the documented weights.
+
+## ADR-010 — Elevation provider fallback
+Accepted. Open-Elevation is tried first. Open-Meteo elevation is used only if Open-Elevation fails, and the successful source is attributed. If both fail, elevation and slope are unavailable. This is a real secondary provider, not fabricated elevation.

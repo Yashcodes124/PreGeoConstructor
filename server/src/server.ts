@@ -1,16 +1,27 @@
-import { app } from "./app.js";
-import { env } from "./config/env.js";
+import { createApp } from './app';
+import { env } from './config/env';
+import { disconnectDatabase } from './services/db';
+import { logger } from './utils/logger';
 
-const server = app.listen(env.PORT, () => {
-  console.info(`BuildWise API listening on http://localhost:${env.PORT}`);
+const app = createApp();
+const server = app.listen(env.PORT, env.HOST, () => {
+  logger.info('API listening', { host: env.HOST, port: env.PORT });
 });
 
-const shutdown = (signal: NodeJS.Signals) => {
-  console.info(`${signal} received. Shutting down API server.`);
-  server.close(() => {
-    process.exit(0);
-  });
-};
+async function shutdown(signal: string): Promise<void> {
+  logger.info('Shutting down', { signal });
+  server.close();
+  try {
+    await disconnectDatabase();
+  } catch {
+    // Shutdown should not fail if the pool is already closed.
+  }
+  process.exit(0);
+}
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on('SIGTERM', () => {
+  void shutdown('SIGTERM');
+});
+process.on('SIGINT', () => {
+  void shutdown('SIGINT');
+});

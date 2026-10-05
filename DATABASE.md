@@ -1,6 +1,6 @@
 # BuildWise AI — Database
 
-PostgreSQL via Prisma. Use PostGIS where practical when spatial queries are introduced.
+PostgreSQL via Prisma. Use PostGIS where practical when spatial queries are introduced. The baseline schema stores latitude and longitude as numeric fields. PostGIS is not enabled yet because no spatial SQL query has been introduced.
 
 ## Prisma baseline
 
@@ -8,19 +8,21 @@ Prisma files:
 - `prisma/schema.prisma`
 - `prisma.config.ts`
 - `prisma/migrations/20260922000000_init/migration.sql`
+- `prisma/migrations/migration_lock.toml`
 
 Prisma dependencies:
 - Root dev dependency: `prisma`
-- Server dependencies: `@prisma/client`, `@prisma/adapter-pg`, `pg`
-- `pnpm-workspace.yaml` explicitly allows Prisma build scripts required by the CLI/engines install.
+- Root runtime dependency: `@prisma/client`, required so the generated client at the repository root can resolve its runtime
+- Server dependencies: `@prisma/client`, `@prisma/adapter-pg`, `pg`, `dotenv`
+- `pnpm-workspace.yaml` allows Prisma and esbuild build scripts
 
 Environment variables:
 - `DATABASE_URL` for runtime database access.
-- `DIRECT_URL` for migration/direct database access when it differs from `DATABASE_URL`.
+- `DIRECT_URL` for migration/direct database access when it differs from `DATABASE_URL`. Prisma CLI uses `DIRECT_URL` when set, otherwise `DATABASE_URL`.
 
-Generated Prisma Client output is configured for `generated/prisma` and is intentionally ignored by Git. Run `corepack pnpm db:generate` after schema changes.
+Generated Prisma Client output is `generated/prisma` and is gitignored. Run `corepack pnpm db:generate` after schema changes.
 
-Migration status/application checks require a reachable PostgreSQL database at the configured `DATABASE_URL`/`DIRECT_URL`.
+`20260922000000_init` was applied to the local PostgreSQL 17 database `buildwise` during backend implementation. A fresh environment must run `corepack pnpm db:migrate` against its own database.
 
 ## Core tables
 
@@ -28,10 +30,10 @@ Migration status/application checks require a reachable PostgreSQL database at t
 id, label, latitude, longitude, plotAreaSqFt, builtUpAreaSqFt, buildingType, floors, qualityGrade, budget, createdAt.
 
 ### Analysis
-id, siteId, overallScore, dataConfidence, rawData JSONB, normalizedData JSONB, createdAt.
+id, siteId, overallScore (nullable when an index is not published), dataConfidence, rawData JSONB (left null; raw provider payloads are not stored), normalizedData JSONB, createdAt.
 
 ### FactorResult
-id, analysisId, factor, rawValue, score, weight, explanation.
+id, analysisId, factor, rawValue, score (nullable when unavailable), weight, explanation.
 
 ### OrientationResult
 id, analysisId, recommendedAngle, solarScore, windScore, candidateScores JSONB.
@@ -43,7 +45,7 @@ id, analysisId, area, baseRate, terrainMultiplier, qualityMultiplier, estimatedC
 id, analysisId, generatedAt, path/url when persistent storage is used.
 
 ### ProviderCache
-id/key, provider, payload JSONB, expiresAt.
+id, cacheKey (unique key), provider, payload JSONB (normalized, not raw provider dumps), expiresAt, createdAt. Expired rows are deleted on read.
 
 Authentication/history tables are optional and should be added only when required.
 

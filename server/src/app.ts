@@ -1,52 +1,31 @@
-import cors from "cors";
-import express, {
-  type Express,
-  type NextFunction,
-  type Request,
-  type Response
-} from "express";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
-import { env } from "./config/env.js";
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
+import { corsOrigins } from './config/env';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { globalLimiter } from './middleware/rateLimit';
+import { apiRouter } from './routes';
 
-export const app: Express = express();
-
-app.use(helmet());
-app.use(
-  cors({
-    origin: env.CLIENT_ORIGIN
-  })
-);
-app.use(express.json({ limit: "1mb" }));
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 300,
-    standardHeaders: "draft-8",
-    legacyHeaders: false
-  })
-);
-
-app.get("/api/health", (_request: Request, response: Response) => {
-  response.status(200).json({ status: "ok" });
-});
-
-app.use((_request: Request, response: Response) => {
-  response.status(404).json({ error: "Not found" });
-});
-
-app.use(
-  (
-    error: unknown,
-    _request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    if (response.headersSent) {
-      next(error);
-      return;
-    }
-
-    response.status(500).json({ error: "Internal server error" });
-  }
-);
+export function createApp() {
+  const app = express();
+  app.disable('x-powered-by');
+  app.set('trust proxy', 1);
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
+  app.use(cors({
+    origin(origin, callback) {
+      if (!origin || corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+    methods: ['GET', 'POST'],
+  }));
+  app.use(express.json({ limit: '100kb' }));
+  app.use('/api', globalLimiter, apiRouter);
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+  return app;
+}
