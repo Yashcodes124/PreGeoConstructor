@@ -8,10 +8,10 @@ interface AnalysisLoadingStateProps {
 export const AnalysisLoadingState: React.FC<AnalysisLoadingStateProps> = () => {
   const steps = [
     { label: 'Fetching Digital Elevation Model (DEM) & Slope Profile...', icon: Mountain },
-    { label: 'Analyzing Surface Runoff & Water Risk Buffers...', icon: ShieldAlert },
+    { label: 'Measuring Surface Water Proximity & Elevation Differential...', icon: ShieldAlert },
     { label: 'Evaluating Road Infrastructure & Transit Proximity...', icon: Navigation },
     { label: 'Calculating Passive Solar Azimuth & Wind Vectors...', icon: Compass },
-    { label: 'Computing Regional Cost Baseline & Multipliers...', icon: DollarSign },
+    { label: 'Applying Illustrative Cost Rates & Multipliers...', icon: DollarSign },
     { label: 'Synthesizing Multi-Criteria Decision Suitability Index...', icon: Cpu },
   ];
 

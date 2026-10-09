@@ -48,10 +48,10 @@ export const SOIL_DISCLAIMER =
   'Geotechnical soil bearing capacity cannot be determined from these open geospatial sources. A site-specific investigation is required before foundation design. This report is not a geotechnical or structural certification.';
 
 export const WATER_DISCLAIMER =
-  'Water/Flood-Risk Indicator is a planning proxy from mapped surface-water distance and, when available, relative elevation. It is not a hydrodynamic flood model, insurance flood zone, or official inundation forecast.';
+  'Surface Water Proximity Indicator is a planning proxy from mapped surface-water distance and, when available, relative elevation. It is not a hydrodynamic flood model, insurance flood zone, or official inundation forecast.';
 
 export const COST_DISCLAIMER =
-  'Preliminary Cost Estimate only. It uses configurable regional planning rates and is not a professional quantity-survey quotation. Land, legal fees, approvals, taxes, and special foundations are excluded.';
+  'Preliminary Cost Estimate only. It uses illustrative, unsourced planning rates and is not a professional quantity-survey quotation. Land, legal fees, approvals, taxes, and special foundations are excluded.';
 
 export const INHERENT_LIMITATIONS = [
   'Subsurface geotechnical soil bearing capacity is not available from remote sources and requires field investigation.',

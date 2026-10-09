@@ -116,7 +116,7 @@ function renderPdf(analysis: AnalysisResponse, filePath: string): Promise<void> 
       analysis.terrain.soilInfo.disclaimer,
     ]);
 
-    writeSection(doc, 'Water / Flood-Risk Indicator', [
+    writeSection(doc, 'Surface Water Proximity Indicator', [
       `Nearest mapped surface water: ${formatNullable(analysis.waterRisk.distanceToWaterMeters, ' m')}`,
       `Relative elevation versus that feature: ${formatNullable(analysis.waterRisk.elevationBufferMeters, ' m')}`,
       `Indicator: ${analysis.waterRisk.riskLevel}`,

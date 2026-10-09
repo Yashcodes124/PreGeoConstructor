@@ -49,5 +49,45 @@ The uploaded/previous status described a Prisma baseline that was not present wh
 - No authentication, bylaw engine, or soil-bearing data. Those remain out of scope.
 - `pnpm` 12 ignores `package.json` `pnpm.onlyBuiltDependencies`. Build-script approval is in `pnpm-workspace.yaml`.
 
+## Data source & claims audit (Task 1 — India-only narrowing)
+
+Completed a full audit of all external providers, UI claims, and licensing. No code was changed.
+
+### Key findings
+1. **Open-Meteo (4 endpoints: archive, air quality, wind, elevation fallback)** — free tier prohibits commercial use. A paid plan ($29+/mo) or replacement with India government sources is required.
+2. **Nominatim and Overpass (public instances)** — not acceptable for production per OSM Foundation policy. Must self-host or use a commercial provider.
+3. **UI labels** — "Flood Risk Indicator" overstates what distance-to-water provides. "FAR footprint" is computed incorrectly (uses ground coverage, not FAR). Facility category names ("Construction Depot", "Water Supply Main") do not match the actual OSM tags queried.
+4. **Cost rates** — hardcoded ₹/sqft values are not sourced from any published index. The UI claims "benchmark regional rates" which is unverifiable.
+5. **AQI** — reports US AQI from a model, not India's NAQI from CPCB monitoring stations.
+6. **India government alternatives identified** — IMD (weather/rainfall), ISRO Bhuvan (elevation, flood zones), CPCB/OpenAQ (air quality), CPWD DSR (construction costs), GeoSadak/PMGSY (rural roads). Access requirements and licensing constraints documented.
+
+Full audit artifact: `data_source_audit.md` in conversation artifacts.
+
+### Files changed
+- `CURRENT_STATUS.md` — this section added.
+
+### Commands/checks run
+- Inspected all files in `server/src/services/`, `server/src/algorithms/`, `server/src/config/constants.ts`, and `client/src/`.
+- Verified provider licence terms via official documentation.
+- No code, dependency, schema, or API contract changes were made.
+
+## Immediate UI corrections (Task 2 — UI accuracy & claims audit alignment)
+
+Applied the immediate UI corrections identified in `data_source_audit.md` across client and server:
+1. **Surface Water Proximity**: Renamed all user-facing "Flood Risk" labels to "Surface Water Proximity" (`HomePage.tsx`, `AnalysisPage.tsx`, `TerrainEnvironmentSection.tsx`, `AnalysisLoadingState.tsx`, `report.service.ts`, `analysis.service.ts`, `synthesis.ts`, `waterIndicator.ts`, `constants.ts`). Removed claims about hydrology vectors, flood assessment, and surface runoff modeling.
+2. **Ground Coverage**: Renamed "FAR footprint" to "Ground Coverage" in `SiteRequirementForm.tsx` while keeping its calculation unchanged.
+3. **Facility Labels**: Corrected facility labels in `TerrainEnvironmentSection.tsx` and `analysis.service.ts` to match actual OpenStreetMap tags returned (`amenity=clinic` vs `amenity=hospital`, `man_made=water_tower` vs `man_made=water_works`, `shop=hardware`/`shop=doityourself` displayed as "Hardware / DIY Store" instead of "Construction Depot").
+4. **Road Accessibility**: Changed "Nearest arterial road" to "Nearest mapped road" in `TerrainEnvironmentSection.tsx`.
+5. **Cost Estimation Notice**: Removed unsupported "benchmark regional material and labor market rates as of Q3 2026" wording. Clearly stated in `CostEstimatorSection.tsx`, `AnalysisLoadingState.tsx`, and `constants.ts` that base cost rates are illustrative, unsourced planning assumptions.
+6. **Modelled US AQI**: Labeled the air quality metric in `TerrainEnvironmentSection.tsx` as "Modelled US AQI" with explicit notice that it is a modelled estimate and not India's National AQI (NAQI).
+7. **Marketing Claims Removed**: Removed unsupported claims regarding logistics depots and municipal grid infrastructure from `HomePage.tsx`.
+8. **Scope Integrity Maintained**: No changes to external providers, scoring algorithms, weights, database schema, API contracts, or dependencies.
+
+### Checks verified
+- Client and server typechecks: `tsc --noEmit` passed on both workspaces with 0 errors.
+- Client production build: `vite build` completed successfully with 0 errors.
+- Server test suite: 16 algorithm/provider tests passed.
+- No unexpected files modified.
+
 ## Next task
-Retry OpenStreetMap road and facility collection against a healthier Overpass window, or add one additional public Overpass mirror that returns the same query rather than an empty result. Do not impute distances if that also fails.
+Decide on data provider replacements and licensing strategy: (1) evaluate OpenAQ vs CPCB for India NAQI air quality, (2) evaluate ISRO Bhuvan CartoDEM / flood maps vs open DEM alternatives, (3) evaluate self-hosted Nominatim/Overpass vs commercial proxies, and (4) establish schedule of rates baseline from CPWD DSR. No provider replacements until owner approval.

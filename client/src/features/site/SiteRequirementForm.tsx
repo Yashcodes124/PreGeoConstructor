@@ -129,7 +129,7 @@ export const SiteRequirementForm: React.FC<SiteRequirementFormProps> = ({
           <label className="block text-xs font-medium text-slate-300 mb-1.5 flex justify-between">
             <span>Ground Built-up Footprint (sq. ft)</span>
             <span className="text-slate-400 font-mono">
-              {((builtUpAreaSqFt / plotAreaSqFt) * 100).toFixed(0)}% FAR footprint
+              {((builtUpAreaSqFt / plotAreaSqFt) * 100).toFixed(0)}% Ground Coverage
             </span>
           </label>
           <div className="relative">

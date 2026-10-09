@@ -81,7 +81,7 @@ export const HomePage: React.FC = () => {
               Comprehensive Geo-Spatial Assessment
             </h2>
             <p className="text-xs sm:text-sm text-slate-400">
-              Built on multi-criteria decision analysis (MCDA) combining terrain elevation, hydrology vectors, and microclimate data.
+              Built on multi-criteria decision analysis (MCDA) combining terrain elevation, surface water proximity, and microclimate data.
             </p>
           </div>
 
@@ -92,15 +92,15 @@ export const HomePage: React.FC = () => {
               </p>
             </Card>
 
-            <Card title="Water & Flood Risk Indicator" icon={<Droplets className="w-5 h-5 text-sky-400" />}>
+            <Card title="Surface Water Proximity Indicator" icon={<Droplets className="w-5 h-5 text-sky-400" />}>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Evaluates distance to surface runoff channels and elevation differentials to establish relative surface flood risk indicators.
+                Measures distance and elevation differential to mapped surface water bodies to establish a surface water proximity indicator.
               </p>
             </Card>
 
             <Card title="Road & Transit Accessibility" icon={<Navigation className="w-5 h-5 text-emerald-400" />}>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Measures proximity to primary arterials, logistics depots, and municipal grid infrastructure for construction feasibility.
+                Measures proximity to nearest mapped roads, major highways, and local transit stops for construction feasibility.
               </p>
             </Card>
 

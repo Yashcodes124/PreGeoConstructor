@@ -4,17 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "corepack pnpm --filter client dev",
-    "dev:client": "corepack pnpm --filter client dev",
-    "dev:server": "corepack pnpm --filter server dev",
-    "build": "corepack pnpm --filter client build && corepack pnpm --filter server build",
-    "typecheck": "corepack pnpm -r typecheck",
-    "lint": "corepack pnpm -r lint",
-    "test": "corepack pnpm --filter server test",
-    "db:generate": "corepack pnpm exec prisma generate",
-    "db:validate": "corepack pnpm exec prisma validate",
-    "db:migrate": "corepack pnpm exec prisma migrate deploy",
-    "db:diff": "corepack pnpm exec prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script"
+    "dev": "pnpm --parallel dev",
+    "dev:client": "pnpm --filter client dev",
+    "dev:server": "pnpm --filter server dev",
+    "build": "pnpm --filter client build && pnpm --filter server build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm --filter server test",
+    "db:generate": "pnpm exec prisma generate",
+    "db:validate": "pnpm exec prisma validate",
+    "db:migrate": "pnpm exec prisma migrate deploy",
+    "db:diff": "pnpm exec prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script"
   },
   "dependencies": {
     "@prisma/client": "7.9.1"

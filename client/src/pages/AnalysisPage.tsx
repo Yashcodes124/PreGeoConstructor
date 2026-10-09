@@ -157,7 +157,7 @@ export const AnalysisPage: React.FC = () => {
             }`}
           >
             <Mountain className="w-4 h-4" />
-            <span>Terrain & Flood Indicator</span>
+            <span>Terrain & Surface Water Proximity</span>
           </button>
 
           <button

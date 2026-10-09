@@ -35,7 +35,7 @@ export function computeWaterIndicator(input: WaterComputationInput): WaterComput
       indicatorScore: null,
       disclaimer,
       rawValue: 'Unavailable',
-      explanation: input.reason ?? 'Mapped surface-water data was unavailable. No water-risk score was imputed.',
+      explanation: input.reason ?? 'Mapped surface-water data was unavailable. No surface-water proximity score was imputed.',
     };
   }
 

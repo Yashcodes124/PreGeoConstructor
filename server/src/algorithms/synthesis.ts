@@ -26,7 +26,7 @@ export function buildSynthesis(analysis: Pick<
   }
 
   if (analysis.waterRisk.riskLevel === 'High Risk' || analysis.waterRisk.riskLevel === 'Moderate Risk') {
-    recommendations.push('Ask a drainage engineer to review stormwater because the water/flood-risk indicator is elevated. This is not a flood-zone designation.');
+    recommendations.push('Ask a drainage engineer to review stormwater because the surface water proximity indicator is elevated. This is not a flood-zone designation.');
   }
 
   if (analysis.cost.terrainAdjustmentApplied === false) {

@@ -96,7 +96,7 @@ export const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({ cost
       <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-400 flex items-start gap-2.5">
         <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
         <p className="text-[11px] leading-relaxed">
-          <strong>Cost Estimation Notice:</strong> {cost.disclaimer} Base rates reflect benchmark regional material and labor market rates as of Q3 2026.
+          <strong>Cost Estimation Notice:</strong> {cost.disclaimer} Base rates are illustrative, unsourced planning assumptions and are not derived from official schedules of rates or published market indices.
         </p>
       </div>
     </div>

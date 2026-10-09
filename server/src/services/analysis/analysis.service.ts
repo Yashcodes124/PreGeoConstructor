@@ -58,7 +58,22 @@ function facilityTypeOf(tags: Record<string, string>): FacilityType | null {
 }
 
 function featureName(tags: Record<string, string>, fallback: string): string {
-  return tags.name || tags.operator || `Unnamed mapped ${fallback}`;
+  const rawName = tags.name || tags.operator;
+  if (rawName) {
+    if (tags.amenity === 'clinic' && !rawName.toLowerCase().includes('clinic')) return `${rawName} (Clinic)`;
+    if (tags.man_made === 'water_tower' && !rawName.toLowerCase().includes('tower')) return `${rawName} (Water Tower)`;
+    if (tags.man_made === 'water_works' && !rawName.toLowerCase().includes('works')) return `${rawName} (Water Works)`;
+    if (tags.shop === 'hardware' && !rawName.toLowerCase().includes('hardware')) return `${rawName} (Hardware Shop)`;
+    if (tags.shop === 'doityourself' && !rawName.toLowerCase().includes('diy')) return `${rawName} (DIY Shop)`;
+    return rawName;
+  }
+  if (tags.amenity === 'clinic') return 'Unnamed mapped clinic';
+  if (tags.amenity === 'hospital') return 'Unnamed mapped hospital';
+  if (tags.man_made === 'water_tower') return 'Unnamed mapped water tower';
+  if (tags.man_made === 'water_works') return 'Unnamed mapped water works';
+  if (tags.shop === 'hardware') return 'Unnamed mapped hardware shop';
+  if (tags.shop === 'doityourself') return 'Unnamed mapped DIY shop';
+  return `Unnamed mapped ${fallback}`;
 }
 
 function makeFactor(
@@ -167,7 +182,7 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
 
   const factors: FactorResult[] = [
     makeFactor('slope', 'Terrain & Slope', slopeScore.score, slopeScore.rawValue, slopeScore.explanation),
-    makeFactor('water', 'Water / Flood-Risk Indicator', water.indicatorScore, water.rawValue, water.explanation),
+    makeFactor('water', 'Surface Water Proximity Indicator', water.indicatorScore, water.rawValue, water.explanation),
     makeFactor('accessibility', 'Road Network Accessibility', accessibility.accessibilityScore, accessibility.rawValue, accessibility.explanation),
     makeFactor('facilities', 'Essential Facilities Proximity', facilities.score, facilities.rawValue, facilities.explanation),
     makeFactor('environment', 'Environmental Quality', environment.environmentalScore, environment.rawValue, environment.explanation),
