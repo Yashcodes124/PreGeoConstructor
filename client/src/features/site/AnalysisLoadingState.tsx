@@ -1,5 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Loader2, CheckCircle2, Compass, Mountain, ShieldAlert, Navigation, DollarSign, Cpu } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import {
+  Loader2,
+  CheckCircle2,
+  Compass,
+  Mountain,
+  ShieldAlert,
+  Navigation,
+  DollarSign,
+  Cpu,
+} from "lucide-react";
 
 interface AnalysisLoadingStateProps {
   onComplete?: () => void;
@@ -7,19 +16,38 @@ interface AnalysisLoadingStateProps {
 
 export const AnalysisLoadingState: React.FC<AnalysisLoadingStateProps> = () => {
   const steps = [
-    { label: 'Fetching Digital Elevation Model (DEM) & Slope Profile...', icon: Mountain },
-    { label: 'Measuring Surface Water Proximity & Elevation Differential...', icon: ShieldAlert },
-    { label: 'Evaluating Road Infrastructure & Transit Proximity...', icon: Navigation },
-    { label: 'Calculating Passive Solar Azimuth & Wind Vectors...', icon: Compass },
-    { label: 'Applying Illustrative Cost Rates & Multipliers...', icon: DollarSign },
-    { label: 'Synthesizing Multi-Criteria Decision Suitability Index...', icon: Cpu },
+    {
+      label: "Fetching Digital Elevation Model (DEM) & Slope Profile...",
+      icon: Mountain,
+    },
+    {
+      label:
+        "Measuring Distance to Mapped Water Proximity & Elevation Differential...",
+      icon: ShieldAlert,
+    },
+    {
+      label: "Evaluating Road Infrastructure & Transit Proximity...",
+      icon: Navigation,
+    },
+    {
+      label: "Calculating Passive Solar Azimuth & Wind Vectors...",
+      icon: Compass,
+    },
+    {
+      label: "Applying Illustrative Cost Rates & Multipliers...",
+      icon: DollarSign,
+    },
+    {
+      label: "Synthesizing Multi-Criteria Decision Suitability Index...",
+      icon: Cpu,
+    },
   ];
 
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentStep(prev => {
+      setCurrentStep((prev) => {
         if (prev < steps.length - 1) {
           return prev + 1;
         }
@@ -40,9 +68,12 @@ export const AnalysisLoadingState: React.FC<AnalysisLoadingStateProps> = () => {
       </div>
 
       <div>
-        <h3 className="text-lg font-bold text-slate-100">Executing Geospatial Analysis Engine</h3>
+        <h3 className="text-lg font-bold text-slate-100">
+          Executing Geospatial Analysis Engine
+        </h3>
         <p className="text-xs text-slate-400 mt-1">
-          Running deterministic spatial calculations and multi-criteria weighted scoring.
+          Running deterministic spatial calculations and multi-criteria weighted
+          scoring.
         </p>
       </div>
 
@@ -58,10 +89,10 @@ export const AnalysisLoadingState: React.FC<AnalysisLoadingStateProps> = () => {
               key={idx}
               className={`flex items-center gap-3 text-xs transition-all duration-300 ${
                 isDone
-                  ? 'text-emerald-400'
+                  ? "text-emerald-400"
                   : isCurrent
-                  ? 'text-slate-100 font-medium'
-                  : 'text-slate-600'
+                    ? "text-slate-100 font-medium"
+                    : "text-slate-600"
               }`}
             >
               {isDone ? (

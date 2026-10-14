@@ -1,83 +1,127 @@
-import { randomUUID } from 'node:crypto';
-import { computeAccessibility } from '../../algorithms/accessibility';
-import { computeConfidence } from '../../algorithms/confidence';
-import { estimateCost } from '../../algorithms/cost';
-import { computeEnvironment } from '../../algorithms/environment';
-import { computeFacilities, type FacilityHit, type FacilityType } from '../../algorithms/facilities';
-import { computeOrientation } from '../../algorithms/orientation';
-import { computeTerrain, scoreSlope } from '../../algorithms/slope';
-import { aggregateSuitability, documentedWeights, factorStatus } from '../../algorithms/suitability';
-import { buildSynthesis } from '../../algorithms/synthesis';
-import { computeWaterIndicator } from '../../algorithms/waterIndicator';
+import { randomUUID } from "node:crypto";
+import { computeAccessibility } from "../../algorithms/accessibility";
+import { computeConfidence } from "../../algorithms/confidence";
+import { estimateCost } from "../../algorithms/cost";
+import { computeEnvironment } from "../../algorithms/environment";
+import {
+  computeFacilities,
+  type FacilityHit,
+  type FacilityType,
+} from "../../algorithms/facilities";
+import { computeOrientation } from "../../algorithms/orientation";
+import { computeTerrain, scoreSlope } from "../../algorithms/slope";
+import {
+  aggregateSuitability,
+  documentedWeights,
+  factorStatus,
+} from "../../algorithms/suitability";
+import { buildSynthesis } from "../../algorithms/synthesis";
+import { computeWaterIndicator } from "../../algorithms/waterIndicator";
 import {
   FACILITY_SEARCH_RADIUS_M,
   ROAD_SEARCH_RADIUS_M,
   SUITABILITY_WEIGHTS,
   WATER_SEARCH_RADIUS_M,
-} from '../../config/constants';
-import type { AnalysisRequestInput } from '../../schemas/requests';
-import type { AnalysisResponse, FactorResult, OsmFeature } from '../../types/domain';
-import { haversineMeters } from '../../utils/geo';
-import { getElevation, elevationSamplePlan } from '../elevation/elevation.service';
-import { reverseGeocode } from '../geocoding/geocoding.service';
-import { getOsmContext } from '../osm/osm.service';
-import { getAirQuality, getClimate, getWind } from '../weather/weather.service';
-import { findRecentAnalysis, saveAnalysis } from './persistence';
+} from "../../config/constants";
+import type { AnalysisRequestInput } from "../../schemas/requests";
+import type {
+  AnalysisResponse,
+  FactorResult,
+  OsmFeature,
+} from "../../types/domain";
+import { haversineMeters } from "../../utils/geo";
+import {
+  getElevation,
+  elevationSamplePlan,
+} from "../elevation/elevation.service";
+import { reverseGeocode } from "../geocoding/geocoding.service";
+import { getOsmContext } from "../osm/osm.service";
+import { getAirQuality, getClimate, getWind } from "../weather/weather.service";
+import { findRecentAnalysis, saveAnalysis } from "./persistence";
 
-const MAJOR = new Set(['motorway', 'trunk', 'primary']);
+const MAJOR = new Set(["motorway", "trunk", "primary"]);
 const DRIVABLE = new Set([
-  'motorway',
-  'trunk',
-  'primary',
-  'secondary',
-  'tertiary',
-  'unclassified',
-  'residential',
-  'service',
-  'living_street',
+  "motorway",
+  "trunk",
+  "primary",
+  "secondary",
+  "tertiary",
+  "unclassified",
+  "residential",
+  "service",
+  "living_street",
 ]);
 
-function nearest(features: OsmFeature[], latitude: number, longitude: number, predicate: (feature: OsmFeature) => boolean): { feature: OsmFeature; distance: number } | null {
+function nearest(
+  features: OsmFeature[],
+  latitude: number,
+  longitude: number,
+  predicate: (feature: OsmFeature) => boolean,
+): { feature: OsmFeature; distance: number } | null {
   let best: { feature: OsmFeature; distance: number } | null = null;
   for (const feature of features) {
     if (!predicate(feature)) continue;
-    const distance = haversineMeters(latitude, longitude, feature.latitude, feature.longitude);
+    const distance = haversineMeters(
+      latitude,
+      longitude,
+      feature.latitude,
+      feature.longitude,
+    );
     if (!best || distance < best.distance) best = { feature, distance };
   }
   return best;
 }
 
 function facilityTypeOf(tags: Record<string, string>): FacilityType | null {
-  if (tags.amenity === 'hospital' || tags.amenity === 'clinic') return 'Hospital';
-  if (tags.amenity === 'fire_station') return 'Fire Station';
-  if (tags.shop === 'hardware' || tags.shop === 'doityourself') return 'Construction Depot';
-  if (tags.power === 'substation') return 'Power Substation';
-  if (tags.man_made === 'water_works' || tags.man_made === 'water_tower') return 'Water Supply Main';
-  if (tags.amenity === 'bus_station' || tags.railway === 'station' || tags.highway === 'bus_stop') return 'Public Transit';
+  if (tags.amenity === "hospital" || tags.amenity === "clinic")
+    return "Hospital";
+  if (tags.amenity === "fire_station") return "Fire Station";
+  if (tags.shop === "hardware" || tags.shop === "doityourself")
+    return "Construction Depot";
+  if (tags.power === "substation") return "Power Substation";
+  if (tags.man_made === "water_works" || tags.man_made === "water_tower")
+    return "Water Supply Main";
+  if (
+    tags.amenity === "bus_station" ||
+    tags.railway === "station" ||
+    tags.highway === "bus_stop"
+  )
+    return "Public Transit";
   return null;
 }
 
 function featureName(tags: Record<string, string>, fallback: string): string {
   const rawName = tags.name || tags.operator;
   if (rawName) {
-    if (tags.amenity === 'clinic' && !rawName.toLowerCase().includes('clinic')) return `${rawName} (Clinic)`;
-    if (tags.man_made === 'water_tower' && !rawName.toLowerCase().includes('tower')) return `${rawName} (Water Tower)`;
-    if (tags.man_made === 'water_works' && !rawName.toLowerCase().includes('works')) return `${rawName} (Water Works)`;
-    if (tags.shop === 'hardware' && !rawName.toLowerCase().includes('hardware')) return `${rawName} (Hardware Shop)`;
-    if (tags.shop === 'doityourself' && !rawName.toLowerCase().includes('diy')) return `${rawName} (DIY Shop)`;
+    if (tags.amenity === "clinic" && !rawName.toLowerCase().includes("clinic"))
+      return `${rawName} (Clinic)`;
+    if (
+      tags.man_made === "water_tower" &&
+      !rawName.toLowerCase().includes("tower")
+    )
+      return `${rawName} (Water Tower)`;
+    if (
+      tags.man_made === "water_works" &&
+      !rawName.toLowerCase().includes("works")
+    )
+      return `${rawName} (Water Works)`;
+    if (tags.shop === "hardware" && !rawName.toLowerCase().includes("hardware"))
+      return `${rawName} (Hardware Shop)`;
+    if (tags.shop === "doityourself" && !rawName.toLowerCase().includes("diy"))
+      return `${rawName} (DIY Shop)`;
     return rawName;
   }
-  if (tags.amenity === 'clinic') return 'Unnamed mapped clinic';
-  if (tags.amenity === 'hospital') return 'Unnamed mapped hospital';
-  if (tags.man_made === 'water_tower') return 'Unnamed mapped water tower';
-  if (tags.man_made === 'water_works') return 'Unnamed mapped water works';
-  if (tags.shop === 'hardware') return 'Unnamed mapped hardware shop';
-  if (tags.shop === 'doityourself') return 'Unnamed mapped DIY shop';
+  if (tags.amenity === "clinic") return "Unnamed mapped clinic";
+  if (tags.amenity === "hospital") return "Unnamed mapped hospital";
+  if (tags.man_made === "water_tower") return "Unnamed mapped water tower";
+  if (tags.man_made === "water_works") return "Unnamed mapped water works";
+  if (tags.shop === "hardware") return "Unnamed mapped hardware shop";
+  if (tags.shop === "doityourself") return "Unnamed mapped DIY shop";
   return `Unnamed mapped ${fallback}`;
 }
 
 function makeFactor(
-  factor: FactorResult['factor'],
+  factor: FactorResult["factor"],
   name: string,
   score: number | null,
   rawValue: string,
@@ -95,7 +139,9 @@ function makeFactor(
   };
 }
 
-export async function runAnalysis(input: AnalysisRequestInput): Promise<AnalysisResponse> {
+export async function runAnalysis(
+  input: AnalysisRequestInput,
+): Promise<AnalysisResponse> {
   const cached = await findRecentAnalysis(input);
   if (cached) return cached;
 
@@ -110,17 +156,26 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
 
   const features = osm.features;
   const waterHit = osm.waterOk
-    ? nearest(features, input.latitude, input.longitude, (feature) => feature.kind === 'water')
+    ? nearest(
+        features,
+        input.latitude,
+        input.longitude,
+        (feature) => feature.kind === "water",
+      )
     : null;
 
   let elevationBuffer: number | null = null;
   if (elevation.available && waterHit) {
-    const waterElevation = await getElevation([{
-      latitude: waterHit.feature.latitude,
-      longitude: waterHit.feature.longitude,
-    }]);
+    const waterElevation = await getElevation([
+      {
+        latitude: waterHit.feature.latitude,
+        longitude: waterHit.feature.longitude,
+      },
+    ]);
     if (waterElevation.available) {
-      elevationBuffer = elevation.center.elevationMeters - waterElevation.center.elevationMeters;
+      elevationBuffer =
+        elevation.center.elevationMeters -
+        waterElevation.center.elevationMeters;
     }
   }
 
@@ -129,7 +184,10 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
     elevation.available ? elevation.samples.slice(1) : [],
     elevation.available ? elevation.attribution : elevation.reason,
   );
-  const slopeScore = scoreSlope(terrain.slopePercentage, terrain.elevationMeters);
+  const slopeScore = scoreSlope(
+    terrain.slopePercentage,
+    terrain.elevationMeters,
+  );
   const water = computeWaterIndicator({
     querySucceeded: osm.waterOk,
     distanceMeters: waterHit?.distance ?? null,
@@ -139,10 +197,18 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
   });
 
   const roadHit = osm.roadsOk
-    ? nearest(features, input.latitude, input.longitude, (feature) => feature.kind === 'road' && DRIVABLE.has(feature.tags.highway ?? ''))
+    ? nearest(
+        features,
+        input.latitude,
+        input.longitude,
+        (feature) =>
+          feature.kind === "road" && DRIVABLE.has(feature.tags.highway ?? ""),
+      )
     : null;
   const highwayHit = osm.roadsOk
-    ? nearest(features, input.latitude, input.longitude, (feature) => MAJOR.has(feature.tags.highway ?? ''))
+    ? nearest(features, input.latitude, input.longitude, (feature) =>
+        MAJOR.has(feature.tags.highway ?? ""),
+      )
     : null;
   const accessibility = computeAccessibility({
     querySucceeded: osm.roadsOk,
@@ -160,7 +226,12 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
       if (!facilityType) continue;
       facilityHits.push({
         facilityType,
-        distanceMeters: haversineMeters(input.latitude, input.longitude, feature.latitude, feature.longitude),
+        distanceMeters: haversineMeters(
+          input.latitude,
+          input.longitude,
+          feature.latitude,
+          feature.longitude,
+        ),
         name: featureName(feature.tags, facilityType.toLowerCase()),
       });
     }
@@ -181,18 +252,51 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
   });
 
   const factors: FactorResult[] = [
-    makeFactor('slope', 'Terrain & Slope', slopeScore.score, slopeScore.rawValue, slopeScore.explanation),
-    makeFactor('water', 'Surface Water Proximity Indicator', water.indicatorScore, water.rawValue, water.explanation),
-    makeFactor('accessibility', 'Road Network Accessibility', accessibility.accessibilityScore, accessibility.rawValue, accessibility.explanation),
-    makeFactor('facilities', 'Essential Facilities Proximity', facilities.score, facilities.rawValue, facilities.explanation),
-    makeFactor('environment', 'Environmental Quality', environment.environmentalScore, environment.rawValue, environment.explanation),
+    makeFactor(
+      "slope",
+      "Terrain & Slope",
+      slopeScore.score,
+      slopeScore.rawValue,
+      slopeScore.explanation,
+    ),
+    makeFactor(
+      "water",
+      "Distance to Mapped Water",
+      water.indicatorScore,
+      water.rawValue,
+      water.explanation,
+    ),
+
+    makeFactor(
+      "accessibility",
+      "Road Network Accessibility",
+      accessibility.accessibilityScore,
+      accessibility.rawValue,
+      accessibility.explanation,
+    ),
+    makeFactor(
+      "facilities",
+      "Essential Facilities Proximity",
+      facilities.score,
+      facilities.rawValue,
+      facilities.explanation,
+    ),
+    makeFactor(
+      "environment",
+      "Environmental Quality",
+      environment.environmentalScore,
+      environment.rawValue,
+      environment.explanation,
+    ),
   ];
 
-  const suitability = aggregateSuitability(factors.map((factor) => ({
-    factor: factor.factor,
-    score: factor.score,
-    weight: documentedWeights()[factor.factor],
-  })));
+  const suitability = aggregateSuitability(
+    factors.map((factor) => ({
+      factor: factor.factor,
+      score: factor.score,
+      weight: documentedWeights()[factor.factor],
+    })),
+  );
 
   const orientation = computeOrientation({
     latitude: input.latitude,
@@ -222,34 +326,37 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
     wind: wind.available,
     geocoding: geocode !== null,
     extraMissing: [
-      'Mapped canopy percentage was not calculated.',
-      ...(!osm.waterOk ? ['Mapped surface-water query did not succeed.'] : []),
-      ...(!osm.roadsOk ? ['Mapped road query did not succeed.'] : []),
-      ...(!osm.facilitiesOk ? ['Mapped facilities query did not succeed.'] : []),
+      "Mapped canopy percentage was not calculated.",
+      ...(!osm.waterOk ? ["Mapped surface-water query did not succeed."] : []),
+      ...(!osm.roadsOk ? ["Mapped road query did not succeed."] : []),
+      ...(!osm.facilitiesOk
+        ? ["Mapped facilities query did not succeed."]
+        : []),
     ],
   });
 
   const fetchedAt = new Date().toISOString();
-  const sources: AnalysisResponse['sources'] = [
+  const sources: AnalysisResponse["sources"] = [
     {
-      provider: 'SunCalc',
-      dataType: 'Solar azimuth and elevation',
-      attribution: 'SunCalc astronomical calculation. Local time is approximated from longitude.',
+      provider: "SunCalc",
+      dataType: "Solar azimuth and elevation",
+      attribution:
+        "SunCalc astronomical calculation. Local time is approximated from longitude.",
       lastUpdated: fetchedAt.slice(0, 10),
     },
   ];
   if (elevation.available) {
     sources.unshift({
       provider: elevation.source,
-      dataType: 'Elevation samples and derived slope',
+      dataType: "Elevation samples and derived slope",
       attribution: elevation.attribution,
       lastUpdated: fetchedAt.slice(0, 10),
     });
   }
   if (osm.waterOk || osm.roadsOk || osm.facilitiesOk) {
     sources.push({
-      provider: 'OpenStreetMap / Overpass',
-      dataType: 'Mapped water, roads, and facilities',
+      provider: "OpenStreetMap / Overpass",
+      dataType: "Mapped water, roads, and facilities",
       attribution: osm.attribution,
       lastUpdated: fetchedAt.slice(0, 10),
     });
@@ -265,7 +372,7 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
   if (air.available) {
     sources.push({
       provider: air.source,
-      dataType: 'Current US AQI',
+      dataType: "Current US AQI",
       attribution: air.attribution,
       lastUpdated: fetchedAt.slice(0, 10),
     });
@@ -273,7 +380,7 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
   if (wind.available) {
     sources.push({
       provider: wind.source,
-      dataType: 'Recent dominant wind direction',
+      dataType: "Recent dominant wind direction",
       attribution: wind.attribution,
       lastUpdated: fetchedAt.slice(0, 10),
     });
@@ -281,7 +388,7 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
   if (geocode) {
     sources.push({
       provider: geocode.source,
-      dataType: 'Place name',
+      dataType: "Place name",
       attribution: geocode.attribution,
       lastUpdated: fetchedAt.slice(0, 10),
     });
@@ -294,12 +401,15 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
     suitability.explanation,
   ];
   if (input.builtUpAreaSqFt > input.plotAreaSqFt * 0.75) {
-    risks.push('The built-up footprint is a large share of the plot. Coverage and setbacks must be checked locally; this service does not do that.');
+    risks.push(
+      "The built-up footprint is a large share of the plot. Coverage and setbacks must be checked locally; this service does not do that.",
+    );
   }
 
-  const displayName = input.locationName
-    || geocode?.displayName
-    || `Site at ${input.latitude.toFixed(4)}°, ${input.longitude.toFixed(4)}°`;
+  const displayName =
+    input.locationName ||
+    geocode?.displayName ||
+    `Site at ${input.latitude.toFixed(4)}°, ${input.longitude.toFixed(4)}°`;
 
   const analysis: AnalysisResponse = {
     id: randomUUID(),
@@ -350,10 +460,10 @@ export async function runAnalysis(input: AnalysisRequestInput): Promise<Analysis
     sources,
     risksAndLimitations: risks,
     aiSynthesis: {
-      summary: '',
+      summary: "",
       architecturalRecommendations: [],
       sustainabilityNotes: [],
-      engineNotice: '',
+      engineNotice: "",
     },
   };
   analysis.aiSynthesis = buildSynthesis(analysis);

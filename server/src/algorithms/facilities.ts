@@ -1,7 +1,8 @@
-import type { AnalysisResponse } from '../types/domain';
-import { roundTo } from '../utils/geo';
+import type { AnalysisResponse } from "../types/domain";
+import { roundTo } from "../utils/geo";
 
-export type FacilityType = AnalysisResponse['facilities'][number]['facilityType'];
+export type FacilityType =
+  AnalysisResponse["facilities"][number]["facilityType"];
 
 export interface FacilityHit {
   facilityType: FacilityType;
@@ -10,19 +11,19 @@ export interface FacilityHit {
 }
 
 export interface FacilitiesComputation {
-  facilities: AnalysisResponse['facilities'];
+  facilities: AnalysisResponse["facilities"];
   score: number | null;
   rawValue: string;
   explanation: string;
 }
 
 const EXPECTED: FacilityType[] = [
-  'Hospital',
-  'Fire Station',
-  'Construction Depot',
-  'Power Substation',
-  'Water Supply Main',
-  'Public Transit',
+  "Hospital",
+  "Fire Station",
+  "Construction Depot",
+  "Power Substation",
+  "Water Supply Main",
+  "Public Transit",
 ];
 
 export function computeFacilities(input: {
@@ -36,12 +37,14 @@ export function computeFacilities(input: {
       facilities: EXPECTED.map((facilityType) => ({
         facilityType,
         distanceMeters: null,
-        name: 'Unavailable',
+        name: "Unavailable",
         available: false,
       })),
       score: null,
-      rawValue: 'Unavailable',
-      explanation: input.reason ?? 'Facility data was unavailable. No facilities score was imputed.',
+      rawValue: "Unavailable",
+      explanation:
+        input.reason ??
+        "Facility data was unavailable. No facilities score was imputed.",
     };
   }
 
@@ -71,17 +74,21 @@ export function computeFacilities(input: {
     };
   });
 
-  const found = facilities.filter((item) => item.available && item.distanceMeters !== null);
+  const found = facilities.filter(
+    (item) => item.available && item.distanceMeters !== null,
+  );
   if (found.length === 0) {
     return {
       facilities,
-      score: 4.4,
+      score: null,
       rawValue: `No mapped essential facilities within ${input.searchRadiusMeters} m`,
-      explanation: `No hospital, fire station, hardware shop, substation, water works, or transit feature was mapped within ${input.searchRadiusMeters} m. Mapping gaps are possible, so this is not proof that services are absent.`,
+      explanation: `No hospital, fire station, hardware shop, substation, water works, or transit feature was mapped within ${input.searchRadiusMeters} m. Mapping gaps are possible, so this is not proof that services are absent. No score was assigned and this factor is left out of the overall suitability score.`,
     };
   }
 
-  const average = found.reduce((sum, item) => sum + (item.distanceMeters ?? 0), 0) / found.length;
+  const average =
+    found.reduce((sum, item) => sum + (item.distanceMeters ?? 0), 0) /
+    found.length;
   let score = 5.2;
   if (average < 1000) score = 8.8;
   else if (average < 2000) score = 7.8;

@@ -31,11 +31,33 @@ export const BUILDING_TYPE_MULTIPLIER = {
 } as const;
 
 export const COST_BREAKDOWN = [
-  { category: 'Foundation & Substructure', percentage: 18, description: 'Excavation, footing, plinth beam, and damp-proofing allowance' },
-  { category: 'Superstructure & Frame', percentage: 38, description: 'Columns, beams, slabs, and masonry allowance' },
-  { category: 'Finishes & Interior Fit-outs', percentage: 24, description: 'Flooring, plaster, paint, doors, and windows allowance' },
-  { category: 'MEP (Mechanical, Electrical, Plumbing)', percentage: 14, description: 'Wiring, fixtures, piping, and sanitation allowance' },
-  { category: 'Site Prep & External Works', percentage: 6, description: 'Compound, drainage hookup, paving, and external works allowance' },
+  {
+    category: "Foundation & Substructure",
+    percentage: 18,
+    description:
+      "Excavation, footing, plinth beam, and damp-proofing allowance",
+  },
+  {
+    category: "Superstructure & Frame",
+    percentage: 38,
+    description: "Columns, beams, slabs, and masonry allowance",
+  },
+  {
+    category: "Finishes & Interior Fit-outs",
+    percentage: 24,
+    description: "Flooring, plaster, paint, doors, and windows allowance",
+  },
+  {
+    category: "MEP (Mechanical, Electrical, Plumbing)",
+    percentage: 14,
+    description: "Wiring, fixtures, piping, and sanitation allowance",
+  },
+  {
+    category: "Site Prep & External Works",
+    percentage: 6,
+    description:
+      "Compound, drainage hookup, paving, and external works allowance",
+  },
 ] as const;
 
 export const WATER_SEARCH_RADIUS_M = 1500;
@@ -45,16 +67,16 @@ export const TRANSIT_SEARCH_RADIUS_M = 800;
 export const ELEVATION_OFFSET_M = 90;
 
 export const SOIL_DISCLAIMER =
-  'Geotechnical soil bearing capacity cannot be determined from these open geospatial sources. A site-specific investigation is required before foundation design. This report is not a geotechnical or structural certification.';
+  "Geotechnical soil bearing capacity cannot be determined from these open geospatial sources. A site-specific investigation is required before foundation design. This report is not a geotechnical or structural certification.";
 
 export const WATER_DISCLAIMER =
-  'Surface Water Proximity Indicator is a planning proxy from mapped surface-water distance and, when available, relative elevation. It is not a hydrodynamic flood model, insurance flood zone, or official inundation forecast.';
+  "Distance to Mapped Water is a planning proxy from OpenStreetMap surface-water distance and, when available, relative elevation. It is not a flood-risk rating, not a hydrodynamic flood model, not an insurance flood zone, and not an official inundation forecast. Official flood hazard data was not consulted.";
 
 export const COST_DISCLAIMER =
-  'Preliminary Cost Estimate only. It uses illustrative, unsourced planning rates and is not a professional quantity-survey quotation. Land, legal fees, approvals, taxes, and special foundations are excluded.';
+  "Preliminary Cost Estimate only. It uses illustrative, unsourced planning rates and is not a professional quantity-survey quotation. Land, legal fees, approvals, taxes, and special foundations are excluded.";
 
 export const INHERENT_LIMITATIONS = [
-  'Subsurface geotechnical soil bearing capacity is not available from remote sources and requires field investigation.',
-  'Municipal zoning, setbacks, and building bylaws are not checked by this service.',
-  'This report is not structural certification, legal approval, or professional engineering sign-off.',
+  "Subsurface geotechnical soil bearing capacity is not available from remote sources and requires field investigation.",
+  "Municipal zoning, setbacks, and building bylaws are not checked by this service.",
+  "This report is not structural certification, legal approval, or professional engineering sign-off.",
 ] as const;

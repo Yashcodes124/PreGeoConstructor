@@ -8,3 +8,16 @@ server/storage
 *.log
 .DS_Store
 coverage
+
+
+# Documentation & Project Notes (Do not track in git)
+uploads/*
+AGENTS.md
+API_CONTRACT.md
+ARCHITECTURE.md
+CURRENT_STATUS.md
+DATABASE.md
+DECISIONS.md
+geoSupport System.txt
+PROJECT_CONTEXT.md
+ROADMAP.md

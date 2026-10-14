@@ -1,7 +1,7 @@
-import { roundTo } from '../utils/geo';
+import { roundTo } from "../utils/geo";
 
-const MAJOR_HIGHWAY = new Set(['motorway', 'trunk', 'primary']);
-const COLLECTOR = new Set(['secondary', 'tertiary']);
+const MAJOR_HIGHWAY = new Set(["motorway", "trunk", "primary"]);
+const COLLECTOR = new Set(["secondary", "tertiary"]);
 
 export interface AccessibilityComputation {
   nearestRoadDistanceMeters: number | null;
@@ -13,8 +13,8 @@ export interface AccessibilityComputation {
 }
 
 export function readableRoadClass(highway: string | null): string {
-  if (!highway) return 'Mapped road';
-  return `Mapped ${highway.replaceAll('_', ' ')} road`;
+  if (!highway) return "Mapped road";
+  return `Mapped ${highway.replaceAll("_", " ")} road`;
 }
 
 export function computeAccessibility(input: {
@@ -28,24 +28,29 @@ export function computeAccessibility(input: {
   if (!input.querySucceeded) {
     return {
       nearestRoadDistanceMeters: null,
-      roadType: 'Unavailable',
+      roadType: "Unavailable",
       accessibilityScore: null,
       nearestHighwayDistanceMeters: null,
-      rawValue: 'Unavailable',
-      explanation: input.reason ?? 'Road-network data was unavailable. No accessibility score was imputed.',
+      rawValue: "Unavailable",
+      explanation:
+        input.reason ??
+        "Road-network data was unavailable. No accessibility score was imputed.",
     };
   }
 
-  const highwayDistance = input.nearestHighwayMeters === null ? null : Math.round(input.nearestHighwayMeters);
+  const highwayDistance =
+    input.nearestHighwayMeters === null
+      ? null
+      : Math.round(input.nearestHighwayMeters);
 
   if (input.nearestRoadMeters === null) {
     return {
       nearestRoadDistanceMeters: null,
       roadType: `No mapped road within ${input.searchRadiusMeters} m`,
-      accessibilityScore: 4,
+      accessibilityScore: null,
       nearestHighwayDistanceMeters: highwayDistance,
       rawValue: `No mapped road within ${input.searchRadiusMeters} m`,
-      explanation: `No drivable OpenStreetMap road was found within ${input.searchRadiusMeters} m. Incomplete mapping can hide a real access road, so this is a conservative planning flag rather than a surveyed distance.`,
+      explanation: `No hospital, fire station, hardware shop, substation, water works, or transit feature was mapped within ${input.searchRadiusMeters} m. Mapping gaps are possible, so this is not proof that services are absent. No score was assigned and this factor is left out of the overall suitability score.`,
     };
   }
 
@@ -58,7 +63,12 @@ export function computeAccessibility(input: {
 
   const roadClass = input.nearestRoadClass;
   if (roadClass && MAJOR_HIGHWAY.has(roadClass)) score += 0.3;
-  else if (roadClass && !COLLECTOR.has(roadClass) && roadClass !== 'unclassified' && roadClass !== 'residential') {
+  else if (
+    roadClass &&
+    !COLLECTOR.has(roadClass) &&
+    roadClass !== "unclassified" &&
+    roadClass !== "residential"
+  ) {
     score -= 0.3;
   }
   score = roundTo(Math.min(9.6, Math.max(1, score)), 1);
